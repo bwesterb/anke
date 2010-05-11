@@ -99,12 +99,30 @@ Anke.prototype = {
 			var prod = this.products[key];
 			var id = 'cat-' + prod.category.toString();
 			var li = $('#prodLiTemplate').clone();
-			li.attr(id, 'prod-'+key.toString());
+			li.attr('id', 'prod-'+key.toString());
 			$('.price', li).html(price(prod.price));
 			$('.name', li).text(prod.name);
 			$('.count', li).text("0");
 			$('.products', '#'+id).append(li);
 		}
+		for(var key in this.users) {
+			var user = this.users[key];
+			var li = $('#userLiTemplate').clone();
+			li.attr('id', null);
+			li.text(user.name);
+			(function(){
+			 	var _id = key;
+				li.click(function(){
+					that.setUser(_id);
+					jQTouch.goBack('#main');
+				});
+			})();
+			$('#userList').append(li);
+		}
+	},
+	setUser: function(id) {
+		this.user = id;
+		$('.user').text(this.users[id].name);
 	},
 	fetchData:function(callback) {
 		var that = this;
@@ -134,15 +152,6 @@ Anke.prototype = {
 	},
 	createMenu: function() {
 		var that = this;
-		$('#menuList').append($('<li/>', {
-				'text': 'Fetch products',
-				'click': function() {
-					that.clearProducts(function(){
-						that.fetchProducts(function(){
-							that.refreshProductList();
-						});
-					}); }
-				}));
 	},
 	connectDb: function() {
 		this.db = openDatabase("Anke", "1.0", "Anke");
@@ -192,6 +201,7 @@ Anke.prototype = {
 		this.resetTables(function(){
 			that.fetchData(function(){
 				that.loadData(function(){
+					that.setUser(0);
 					that.refreshProductList();
 				});
 			});
@@ -200,6 +210,6 @@ Anke.prototype = {
 	}
 }
 
-new $.jQTouch({});
+jQTouch = new $.jQTouch({});
 var anke = new Anke;
 $(document).ready(function(){anke.run();});

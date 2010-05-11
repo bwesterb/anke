@@ -15,7 +15,10 @@
 	<body>
 		<div id="main">
 			<div class="toolbar">
-				<h1 class="inRegister"></h1>
+				<h1>
+				<span class="user">(user)</span>
+				<span class="inRegister">(inRegister)</span>
+				</h1>
 				<a class="button flip" href="#menu">menu</a>
 			</div>
 			<ul id="catList" class="rounded">
@@ -30,14 +33,30 @@
 				<a class="back" href="#main">Terug</a>
 			</div>
 			<ul id="menuList" class="rounded">
+				<li class="arrow"><a
+					href="#user">Wissel tapper</a></li>
+			</ul>
+		</div>
+		<div id="user">
+			<div class="toolbar">
+				<h1>Wissel tapper</h1>
+				<a class="back" href="#menu">Terug</a>
+			</div>
+			<ul id="userList" class="rounded">
 			</ul>
 		</div>
 		<div id="templates">
 			<li id="catLiTemplate" class="arrow"
 				><a>(Category)</a></li>
+			<li id="userLiTemplate"
+				><a>(User)</a></li>
 			<div id="catDivTemplate">
 				<div class="toolbar">
-					<h1 class="inRegister"></h1>
+					<h1>
+					<span class="user">(user)</span>
+					<span class="inRegister"
+						>(inRegister)</span>
+					</h1>
 					<a class="back" href="#main">Terug</a>
 				</div>
 				<ul class="products rounded">

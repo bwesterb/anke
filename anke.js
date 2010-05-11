@@ -1,7 +1,10 @@
 /* vim: set ts=4 sw=4: */
 
 function price(cents) {
-	return "&euro;" + (cents / 100.0).toFixed(2);
+	var t1 = Math.floor(cents / 100);
+	var t2 = (cents % 100).toString();
+	while(t2.length < 2) t2 = '0' + t2;
+	return "&euro;" + t1 + '.' + t2;
 }
 
 function Anke() {

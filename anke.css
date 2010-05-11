@@ -1,0 +1,9 @@
+ul.rounded li em {
+    display: block;
+    font-size: 14px;
+    font-style: normal;
+    color: #444;
+    width: 50%;
+    line-height: 14px;
+}
+

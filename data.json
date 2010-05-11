@@ -1,0 +1,284 @@
+{
+    "products": {
+        "0": {
+            "category": 1, 
+            "price": 100, 
+            "name": "Coca Cola"
+        }, 
+        "1": {
+            "category": 1, 
+            "price": 100, 
+            "name": "Coca Cola Light"
+        }, 
+        "2": {
+            "category": 1, 
+            "price": 100, 
+            "name": "Seven-Up"
+        }, 
+        "3": {
+            "category": 1, 
+            "price": 100, 
+            "name": "Ice Tea"
+        }, 
+        "4": {
+            "category": 1, 
+            "price": 100, 
+            "name": "Fanta Sinas"
+        }, 
+        "5": {
+            "category": 1, 
+            "price": 100, 
+            "name": "Cassis Royal Club"
+        }, 
+        "6": {
+            "category": 1, 
+            "price": 100, 
+            "name": "Appelsientje"
+        }, 
+        "7": {
+            "category": 0, 
+            "price": 100, 
+            "name": "Pils stapelglas"
+        }, 
+        "8": {
+            "category": 0, 
+            "price": 250, 
+            "name": "Pils pul"
+        }, 
+        "9": {
+            "category": 0, 
+            "price": 100, 
+            "name": "Pils fles"
+        }, 
+        "10": {
+            "category": 0, 
+            "price": 700, 
+            "name": "Pils pitcher"
+        }, 
+        "11": {
+            "category": 0, 
+            "price": 150, 
+            "name": "DAB"
+        }, 
+        "12": {
+            "category": 0, 
+            "price": 150, 
+            "name": "Hoegaarden"
+        }, 
+        "13": {
+            "category": 0, 
+            "price": 250, 
+            "name": "Erdinger"
+        }, 
+        "14": {
+            "category": 0, 
+            "price": 229, 
+            "name": "Westmalle Dubbel"
+        }, 
+        "15": {
+            "category": 0, 
+            "price": 250, 
+            "name": "Westmalle Tripel"
+        }, 
+        "16": {
+            "category": 0, 
+            "price": 229, 
+            "name": "Duvel"
+        }, 
+        "17": {
+            "category": 4, 
+            "price": 150, 
+            "name": "Smirnoff"
+        }, 
+        "18": {
+            "category": 4, 
+            "price": 150, 
+            "name": "Capt. Morgan Black Rum"
+        }, 
+        "19": {
+            "category": 4, 
+            "price": 240, 
+            "name": "Havanna Brown Rum"
+        }, 
+        "20": {
+            "category": 4, 
+            "price": 150, 
+            "name": "Stolichnaya"
+        }, 
+        "21": {
+            "category": 2, 
+            "price": 100, 
+            "name": "Rode wijn"
+        }, 
+        "22": {
+            "category": 2, 
+            "price": 100, 
+            "name": "Zoete witte wijn"
+        }, 
+        "23": {
+            "category": 2, 
+            "price": 100, 
+            "name": "Droge witte wijn"
+        }, 
+        "24": {
+            "category": 2, 
+            "price": 150, 
+            "name": "Q Harris Ruby Port"
+        }, 
+        "25": {
+            "category": 3, 
+            "price": 120, 
+            "name": "Malibu"
+        }, 
+        "26": {
+            "category": 3, 
+            "price": 120, 
+            "name": "Coebergh"
+        }, 
+        "27": {
+            "category": 3, 
+            "price": 120, 
+            "name": "Passoa"
+        }, 
+        "28": {
+            "category": 3, 
+            "price": 150, 
+            "name": "Bailey's"
+        }, 
+        "29": {
+            "category": 3, 
+            "price": 120, 
+            "name": "Apfelkorn"
+        }, 
+        "30": {
+            "category": 3, 
+            "price": 120, 
+            "name": "Safari"
+        }, 
+        "31": {
+            "category": 3, 
+            "price": 150, 
+            "name": "Sambuca"
+        }, 
+        "32": {
+            "category": 3, 
+            "price": 120, 
+            "name": "Blue Curacao"
+        }, 
+        "33": {
+            "category": 3, 
+            "price": 150, 
+            "name": "Amaretto"
+        }, 
+        "34": {
+            "category": 3, 
+            "price": 120, 
+            "name": "Pisang Ambon"
+        }, 
+        "35": {
+            "category": 5, 
+            "price": 550, 
+            "name": "Lagavulin"
+        }, 
+        "36": {
+            "category": 5, 
+            "price": 330, 
+            "name": "Dalwhinnie"
+        }, 
+        "37": {
+            "category": 5, 
+            "price": 550, 
+            "name": "Highland Park 18"
+        }, 
+        "38": {
+            "category": 5, 
+            "price": 240, 
+            "name": "Glenfiddich"
+        }, 
+        "39": {
+            "category": 5, 
+            "price": 240, 
+            "name": "Aberlour"
+        }, 
+        "40": {
+            "category": 5, 
+            "price": 170, 
+            "name": "Jameson (normaal)"
+        }, 
+        "41": {
+            "category": 5, 
+            "price": 400, 
+            "name": "The Macallan"
+        }, 
+        "42": {
+            "category": 5, 
+            "price": 330, 
+            "name": "Dimple"
+        }, 
+        "43": {
+            "category": 5, 
+            "price": 330, 
+            "name": "Cragganmore"
+        }, 
+        "44": {
+            "category": 5, 
+            "price": 300, 
+            "name": "Highland Park 12"
+        }, 
+        "45": {
+            "category": 5, 
+            "price": 300, 
+            "name": "The Glenlivet 12"
+        }, 
+        "46": {
+            "category": 5, 
+            "price": 400, 
+            "name": "Oban"
+        }, 
+        "47": {
+            "category": 5, 
+            "price": 200, 
+            "name": "Jack Daniel's"
+        }, 
+        "48": {
+            "category": 5, 
+            "price": 550, 
+            "name": "The Glenliver 18"
+        }, 
+        "49": {
+            "category": 5, 
+            "price": 150, 
+            "name": "Ballentine's"
+        }, 
+        "50": {
+            "category": 5, 
+            "price": 270, 
+            "name": "Jameson 12"
+        }
+    }, 
+    "users": {
+	"0": {
+	    "name": "Bas"
+	}
+    }, 
+    "categories": {
+        "0": {
+            "name": "Bier"
+        }, 
+        "1": {
+            "name": "Fris"
+        }, 
+        "2": {
+            "name": "Wijnen"
+        }, 
+        "3": {
+            "name": "Likeuren"
+        }, 
+        "2": {
+            "name": "Wodka en Rum"
+        }, 
+        "5": {
+            "name": "Whiskeys"
+        }
+    }
+}

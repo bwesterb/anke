@@ -68,10 +68,17 @@ Anke.prototype = {
 					};
 				}
 			});
+			that.query(t, "SELECT SUM(amount) AS x FROM `transactions` "+
+						  "WHERE cancelled=1", [], function(t, res) {
+				var x = res.rows.item(0).x;
+				if(!x) x = 0;
+				that.inRegister = x;
+			});
 		}, null, callback);
 	},
 	refreshProductList: function() {
 		var that = this;
+		$('.inRegister').html(price(this.inRegister));
 		if(!this.catDivs) this.catDivs = [];
 		$.each(that.catDivs, function(i, catDiv) { catDiv.remove(); });
 		$('#catList').empty();
@@ -85,7 +92,6 @@ Anke.prototype = {
 			$('#catList').append(li);
 			var div = $('#catDivTemplate').clone();
 			div.attr('id', id);
-			$('h1', div).text(cat.name);
 			$('body').append(div);
 			that.catDivs.push(div);
 		}
@@ -167,6 +173,7 @@ Anke.prototype = {
 						 '   id INTEGER PRIMARY KEY,'+
 						 '   at DATETIME,'+
 						 '   amount INTEGER,'+
+						 '   cancelled INTEGER,'+
 						 '   user INTEGER,'+
 						 '   product INTEGER)', [], cbs2[2]);
 				query(t, 'CREATE TABLE `users` ('+

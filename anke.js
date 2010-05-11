@@ -166,6 +166,7 @@ Anke.prototype = {
 				query(t, 'CREATE TABLE `transactions` ('+
 						 '   id INTEGER PRIMARY KEY,'+
 						 '   at DATETIME,'+
+						 '   amount INTEGER,'+
 						 '   user INTEGER,'+
 						 '   product INTEGER)', [], cbs2[2]);
 				query(t, 'CREATE TABLE `users` ('+

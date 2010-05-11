@@ -38,41 +38,67 @@ function create_join(n, callback) {
 }
 
 Anke.prototype = {
+	loadData: function(callback) {
+		var that = this;
+		this.products = {};
+		this.categories = {};
+		this.users = {};
+		this.db.transaction(function(t){
+			that.query(t, "SELECT * FROM `categories`", [], function(t, res) {
+				for(var i=0; i<res.rows.length; i++) {
+					var row = res.rows.item(i);
+					that.categories[row.id] = { name: row['name'] };
+				}
+			});
+			that.query(t, "SELECT * FROM `products`", [], function(t, res) {
+				for(var i=0; i<res.rows.length; i++) {
+					var row = res.rows.item(i);
+					that.products[row.id] = {
+						name: row['name'],
+						price: row['price'],
+						category: row['category']
+					};
+				}
+			});
+			that.query(t, "SELECT * FROM `users`", [], function(t, res) {
+				for(var i=0; i<res.rows.length; i++) {
+					var row = res.rows.item(i);
+					that.users[row.id] = {
+						name: row['name']
+					};
+				}
+			});
+		}, null, callback);
+	},
 	refreshProductList: function() {
 		var that = this;
 		if(!this.catDivs) this.catDivs = [];
-		this.db.transaction(function(t){
-			that.query(t, "SELECT * FROM `categories`", [], function(t, res) {
-				$.each(that.catDivs, function(i, catDiv) { catDiv.remove(); });
-				$('#catList').empty();
-				for(var i=0; i<res.rows.length; i++) {
-					var row = res.rows.item(i);
-					var id = 'cat-' + row['id'].toString();
-					var li = $('#catLiTemplate').clone();
-					li.attr('id', null);
-					$('a', li).text(row['name']);
-					$('a', li).attr('href', '#'+id);
-					$('#catList').append(li);
-					var div = $('#catDivTemplate').clone();
-					div.attr('id', id);
-					$('h1', div).text(row['name']);
-					$('body').append(div);
-					that.catDivs.push(div);
-				}
-				that.query(t, "SELECT * FROM `products`", [], function(t, res) {
-					for(var i=0; i<res.rows.length; i++) {
-						var row = res.rows.item(i);
-						var id = 'cat-' + row['category'].toString();
-						var li = $('#prodLiTemplate').clone();
-						li.attr(id, 'prod-'+row['id'].toString());
-						$('.price', li).html(price(row['price']));
-						$('.name', li).text(row['name']);
-						$('.count', li).text("0");
-						$('.products', '#'+id).append(li);
-					}
-				});
-			});
-		});
+		$.each(that.catDivs, function(i, catDiv) { catDiv.remove(); });
+		$('#catList').empty();
+		for(var key in this.categories) {
+			var cat = this.categories[key];
+			var id = 'cat-' + key.toString();
+			var li = $('#catLiTemplate').clone();
+			li.attr('id', null);
+			$('a', li).text(cat.name);
+			$('a', li).attr('href', '#'+id);
+			$('#catList').append(li);
+			var div = $('#catDivTemplate').clone();
+			div.attr('id', id);
+			$('h1', div).text(cat.name);
+			$('body').append(div);
+			that.catDivs.push(div);
+		}
+		for(var key in this.products) {
+			var prod = this.products[key];
+			var id = 'cat-' + prod.category.toString();
+			var li = $('#prodLiTemplate').clone();
+			li.attr(id, 'prod-'+key.toString());
+			$('.price', li).html(price(prod.price));
+			$('.name', li).text(prod.name);
+			$('.count', li).text("0");
+			$('.products', '#'+id).append(li);
+		}
 	},
 	fetchData:function(callback) {
 		var that = this;
@@ -157,7 +183,9 @@ Anke.prototype = {
 		this.connectDb();
 		this.resetTables(function(){
 			that.fetchData(function(){
-				that.refreshProductList();
+				that.loadData(function(){
+					that.refreshProductList();
+				});
 			});
 		});
 		this.createMenu();

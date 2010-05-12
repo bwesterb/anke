@@ -1,7 +1,8 @@
 /* vim: set ts=4 sw=4: */
 
 TRANS_SWITCH = 0;
-TRANS_PURCHASE = 0;
+TRANS_PURCHASE = 1;
+TRANS_CANCEL = 2;
 
 function price(cents) {
 	var t1 = Math.floor(cents / 100);
@@ -90,6 +91,24 @@ Anke.prototype = {
 			$('.counter', '#prod-'+key).text('0');
 		}
 	},
+	cancel: function(id, callback) {
+		var that = this;
+		var li = $('#prod-'+id.toString());
+		if(this.products[id].count == 0)
+			return;
+		this.db.transaction(function(t) {
+			that.query(t, 'INSERT INTO `transactions` '+
+						  '(`type`, `user`, `product`, `amount`, `at`) '+
+						  'VALUES (?, ?, ?, ?, ?)',
+					[TRANS_CANCEL, that.user, id, -that.products[id].price,
+						new Date()], function(){
+				that.products[id].count--;
+				that.changeRegister(-that.products[id].price);
+				$('.counter' ,li).text(that.products[id].count);
+				if(callback) callback();
+			});
+		});
+	},
 	buy: function(id, callback) {
 		var that = this;
 		var li = $('#prod-'+id.toString());
@@ -142,7 +161,11 @@ Anke.prototype = {
 						});
 				});
 				sel.swipe(function(evt, data) {
-					alert(data.direction);
+					if(data.direction == 'left' ||
+					   data.direction == 'right') {
+						that.cancel(key, function() {
+						});
+					}
 				});
 				sel.addClass('touch');
 				console.info();

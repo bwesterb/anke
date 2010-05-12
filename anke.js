@@ -1,6 +1,7 @@
 /* vim: set ts=4 sw=4: */
 
 TRANS_SWITCH = 0;
+TRANS_PURCHASE = 0;
 
 function price(cents) {
 	var t1 = Math.floor(cents / 100);
@@ -58,7 +59,8 @@ Anke.prototype = {
 					that.products[row.id] = {
 						name: row['name'],
 						price: row['price'],
-						category: row['category']
+						category: row['category'],
+						count: 0
 					};
 				}
 			});
@@ -77,6 +79,32 @@ Anke.prototype = {
 				that.inRegister = x;
 			});
 		}, null, callback);
+	},
+	changeRegister: function(amount) {
+		this.inRegister += amount;
+		$('.inRegister').html(price(this.inRegister));
+	},
+	reset_productCounts: function() {
+		for(var key in this.products) {
+			this.products[key].count = 0;
+			$('.count', '#prod-'+key).text('0');
+		}
+	},
+	buy: function(id, callback) {
+		var that = this;
+		var li = $('#prod-'+id.toString());
+		this.db.transaction(function(t) {
+			that.query(t, 'INSERT INTO `transactions` '+
+						  '(`type`, `user`, `product`, `amount`, `at`) '+
+						  'VALUES (?, ?, ?, ?, ?)',
+					[TRANS_PURCHASE, that.user, id, that.products[id].price,
+						new Date()], function(){
+				that.products[id].count++;
+				that.changeRegister(that.products[id].price);
+				$('.count' ,li).text(that.products[id].count);
+				if(callback) callback();
+			});
+		});
 	},
 	refreshProductList: function() {
 		var that = this;
@@ -101,6 +129,12 @@ Anke.prototype = {
 			var prod = this.products[key];
 			var id = 'cat-' + prod.category.toString();
 			var li = $('#prodLiTemplate').clone();
+			(function(key){
+				li.click(function() {
+					that.buy(key, function() {
+						});
+				});
+			})(key);
 			li.attr('id', 'prod-'+key.toString());
 			$('.price', li).html(price(prod.price));
 			$('.name', li).text(prod.name);
@@ -122,15 +156,17 @@ Anke.prototype = {
 			$('#userList').append(li);
 		}
 	},
-	setUser: function(id) {
+	setUser: function(id, callback) {
 		var that = this;
 		this.db.transaction(function(t) {
 			that.query(t, "INSERT INTO `transactions` "+
-						  "(`type`, `user`, `at`) "+
-						  "VALUES (?, ?, ?)", [TRANS_SWITCH, id, new Date()],
+						  "(`type`, `user`, `at`, `amount`) "+
+						  "VALUES (?, ?, ?, 0)", [TRANS_SWITCH, id, new Date()],
 				function() {
 					$('.user').text(that.users[id].name);
 					that.user = id;
+					that.reset_productCounts();
+					if(callback) callback();
 				});
 		});
 	},
@@ -211,8 +247,9 @@ Anke.prototype = {
 		this.resetTables(function(){
 			that.fetchData(function(){
 				that.loadData(function(){
-					that.setUser(0);
-					that.refreshProductList();
+					that.setUser(0, function() {
+						that.refreshProductList();
+					});
 				});
 			});
 		});

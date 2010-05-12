@@ -3,6 +3,7 @@
 TRANS_SWITCH = 0;
 TRANS_PURCHASE = 1;
 TRANS_CANCEL = 2;
+TRANS_MANUAL = 3;
 
 function price(cents) {
 	var t1 = Math.floor(cents / 100);
@@ -82,6 +83,17 @@ Anke.prototype = {
 		}, null, callback);
 	},
 	changeRegister: function(amount) {
+		var that = this;
+		this.db.transaction(function(t) {
+			that.query(t, 'INSERT INTO `transactions` '+
+						  '(`type`, `user`, `amount`, `at`) '+
+							  'VALUES (?, ?, ?, ?)',
+					[TRANS_MANUAL, that.user, amount, new Date()], function(){
+				that._changeRegister(amount);
+			});
+		});
+	},
+	_changeRegister: function(amount) {
 		this.inRegister += amount;
 		$('.inRegister').html(price(this.inRegister));
 	},
@@ -103,7 +115,7 @@ Anke.prototype = {
 					[TRANS_CANCEL, that.user, id, -that.products[id].price,
 						new Date()], function(){
 				that.products[id].count--;
-				that.changeRegister(-that.products[id].price);
+				that._changeRegister(-that.products[id].price);
 				$('.counter' ,li).text(that.products[id].count);
 				if(callback) callback();
 			});
@@ -119,7 +131,7 @@ Anke.prototype = {
 					[TRANS_PURCHASE, that.user, id, that.products[id].price,
 						new Date()], function(){
 				that.products[id].count++;
-				that.changeRegister(that.products[id].price);
+				that._changeRegister(that.products[id].price);
 				$('.counter' ,li).text(that.products[id].count);
 				if(callback) callback();
 			});
@@ -232,6 +244,17 @@ Anke.prototype = {
 	},
 	createMenu: function() {
 		var that = this;
+		$('.submit', '#register').tap(function(){
+				var v = parseFloat($('#registerPermAmount').attr('value'));
+				v = Math.floor(v * 100)
+				$('#registerPermAmount').attr('value', null);
+				if(!v) {
+					alert("Onjuiste invoerwaarde");
+					return
+				};
+				jQTouch.goBack('#main');
+				that.changeRegister(v);
+		});
 	},
 	connectDb: function() {
 		this.db = openDatabase("Anke", "1.0", "Anke");

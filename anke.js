@@ -245,17 +245,36 @@ Anke.prototype = {
 	createMenu: function() {
 		var that = this;
 		$('.submit', '#register').tap(function(){
-				var v = parseFloat($('#registerPermAmount').attr('value'));
-				v = Math.floor(v * 100)
-				$('#registerPermAmount').attr('value', null);
-				if(!v) {
-					alert("Onjuiste invoerwaarde");
-					return
-				};
-				jQTouch.goBack('#main');
-				that.changeRegister(v);
+			var v = parseFloat($('#registerPermAmount').attr('value'));
+			v = Math.floor(v * 100)
+			$('#registerPermAmount').attr('value', null);
+			if(!v) {
+				alert("Onjuiste invoerwaarde");
+				return
+			};
+			jQTouch.goBack('#main');
+			that.changeRegister(v);
+		});
+		$('#send').tap(function(){
+			that.sendTransactions();
+			jQTouch.goBack('#main');
 		});
 	},
+	sendTransactions: function() {
+		var that = this;
+		this.db.transaction(function(t){
+			that.query(t, "SELECT * FROM `transactions` ", [],
+					function(t, res) {
+				var ret = [];
+				for(var i=0; i<res.rows.length; i++) {
+					var row = res.rows.item(i);
+					ret.push([row.id, row.type, row.at, row.amount, row.user,
+								row.product]);
+				}
+				$.post('submit.php', {data: JSON.stringify(ret)});
+			});
+		});
+    },
 	connectDb: function() {
 		this.db = openDatabase("Anke", "1.0", "Anke");
 	},

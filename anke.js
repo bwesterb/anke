@@ -1,5 +1,7 @@
 /* vim: set ts=4 sw=4: */
 
+TRANS_SWITCH = 0;
+
 function price(cents) {
 	var t1 = Math.floor(cents / 100);
 	var t2 = (cents % 100).toString();
@@ -68,8 +70,8 @@ Anke.prototype = {
 					};
 				}
 			});
-			that.query(t, "SELECT SUM(amount) AS x FROM `transactions` "+
-						  "WHERE cancelled=1", [], function(t, res) {
+			that.query(t, "SELECT SUM(amount) AS x FROM `transactions` ",
+					[], function(t, res) {
 				var x = res.rows.item(0).x;
 				if(!x) x = 0;
 				that.inRegister = x;
@@ -121,8 +123,16 @@ Anke.prototype = {
 		}
 	},
 	setUser: function(id) {
-		this.user = id;
-		$('.user').text(this.users[id].name);
+		var that = this;
+		this.db.transaction(function(t) {
+			that.query(t, "INSERT INTO `transactions` "+
+						  "(`type`, `user`, `at`) "+
+						  "VALUES (?, ?, ?)", [TRANS_SWITCH, id, new Date()],
+				function() {
+					$('.user').text(that.users[id].name);
+					that.user = id;
+				});
+		});
 	},
 	fetchData:function(callback) {
 		var that = this;
@@ -180,9 +190,9 @@ Anke.prototype = {
 						 '   name TEXT)', [], cbs2[1]);
 				query(t, 'CREATE TABLE `transactions` ('+
 						 '   id INTEGER PRIMARY KEY,'+
+						 '   type INTEGER,'+
 						 '   at DATETIME,'+
 						 '   amount INTEGER,'+
-						 '   cancelled INTEGER,'+
 						 '   user INTEGER,'+
 						 '   product INTEGER)', [], cbs2[2]);
 				query(t, 'CREATE TABLE `users` ('+

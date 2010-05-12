@@ -1,72 +1,75 @@
+<!-- vim: set ts=4 sw=4: -->
 <html>
 	<head>
 		<script type="text/javascript"
 			src="jquery-1.4.2.min.js"> </script>
 		<script type="text/javascript"
-			src="jqtouch-1.0-beta-2-r109/jqtouch.js"></script>
+			src="jqtouch-r148/jqtouch.js"></script>
 		<script type="text/javascript"
 			src="anke.js"> </script>
 		<style type="text/css" media="screen">
-		@import "jqtouch-1.0-beta-2-r109/jqtouch.css";
-		@import "jqtouch-1.0-beta-2-r109/apple-theme/theme.min.css";
+		@import "jqtouch-r148/jqtouch.css";
+		@import "jqtouch-r148/apple-theme/theme.css";
 		@import "anke.css";
 		</style>
 	</head>
 	<body>
-		<div id="main">
-			<div class="toolbar">
-				<h1>
-				<span class="user">(user)</span>
-				<span class="inRegister">(inRegister)</span>
-				</h1>
-				<a class="button flip" href="#menu">menu</a>
-			</div>
-			<ul id="catList" class="rounded">
-			</ul>
-			<div class="info">
-				&copy; 2010 &mdash; Bas Westerbaan
-			</div>
-		</div>
-		<div id="menu">
-			<div class="toolbar">
-				<h1>Menu</h1>
-				<a class="back" href="#main">Terug</a>
-			</div>
-			<ul id="menuList" class="rounded">
-				<li class="arrow"><a
-					href="#user">Wissel tapper</a></li>
-			</ul>
-		</div>
-		<div id="user">
-			<div class="toolbar">
-				<h1>Wissel tapper</h1>
-				<a class="back" href="#menu">Terug</a>
-			</div>
-			<ul id="userList" class="rounded">
-			</ul>
-		</div>
-		<div id="templates">
-			<li id="catLiTemplate" class="arrow"
-				><a>(Category)</a></li>
-			<li id="userLiTemplate"
-				><a>(User)</a></li>
-			<div id="catDivTemplate">
+		<div id="jqt">
+			<div id="main">
 				<div class="toolbar">
 					<h1>
 					<span class="user">(user)</span>
-					<span class="inRegister"
-						>(inRegister)</span>
+					<span class="inRegister">(inRegister)</span>
 					</h1>
+					<a class="button flip" href="#menu">menu</a>
+				</div>
+				<ul id="catList" class="rounded">
+				</ul>
+				<div class="info">
+					&copy; 2010 &mdash; Bas Westerbaan
+				</div>
+			</div>
+			<div id="menu">
+				<div class="toolbar">
+					<h1>Menu</h1>
 					<a class="back" href="#main">Terug</a>
 				</div>
-				<ul class="products rounded">
+				<ul id="menuList" class="rounded">
+					<li class="arrow"><a
+						href="#user">Wissel tapper</a></li>
 				</ul>
 			</div>
-			<li id="prodLiTemplate">
-				<small class="count">(Count)</small>	
-				<span class="name">(Name)</span>
-				<em class="price">(Price)</em>
-			</li>
+			<div id="user">
+				<div class="toolbar">
+					<h1>Wissel tapper</h1>
+					<a class="back" href="#menu">Terug</a>
+				</div>
+				<ul id="userList" class="rounded">
+				</ul>
+			</div>
+			<div id="templates">
+				<li id="catLiTemplate" class="arrow"
+				><a>(Category)</a></li>
+				<li id="userLiTemplate" class="touch"
+					>(User)</li>
+				<div id="catDivTemplate">
+					<div class="toolbar">
+						<h1>
+						<span class="user">(user)</span>
+						<span class="inRegister"
+							>(inRegister)</span>
+						</h1>
+						<a class="back" href="#main">Terug</a>
+					</div>
+					<ul class="products rounded">
+					</ul>
+				</div>
+				<li id="prodLiTemplate" class="touch">
+					<span class="name">(Name)</span>
+					<em class="price">(Price)</em>
+					<small class="counter">(Count)</small>	
+				</li>
+			</div>
 		</div>
 	</body>
 </html>

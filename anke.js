@@ -87,7 +87,7 @@ Anke.prototype = {
 	reset_productCounts: function() {
 		for(var key in this.products) {
 			this.products[key].count = 0;
-			$('.count', '#prod-'+key).text('0');
+			$('.counter', '#prod-'+key).text('0');
 		}
 	},
 	buy: function(id, callback) {
@@ -101,7 +101,7 @@ Anke.prototype = {
 						new Date()], function(){
 				that.products[id].count++;
 				that.changeRegister(that.products[id].price);
-				$('.count' ,li).text(that.products[id].count);
+				$('.counter' ,li).text(that.products[id].count);
 				if(callback) callback();
 			});
 		});
@@ -122,38 +122,43 @@ Anke.prototype = {
 			$('#catList').append(li);
 			var div = $('#catDivTemplate').clone();
 			div.attr('id', id);
-			$('body').append(div);
+			$('#jqt').append(div);
 			that.catDivs.push(div);
 		}
 		for(var key in this.products) {
 			var prod = this.products[key];
-			var id = 'cat-' + prod.category.toString();
+			var cat_id = 'cat-' + prod.category.toString();
+			var id = 'prod-' + key.toString();
 			var li = $('#prodLiTemplate').clone();
-			(function(key){
-				li.click(function() {
+			li.attr('id', id);
+			$('.price', li).html(price(prod.price));
+			$('.name', li).text(prod.name);
+			$('.counter', li).text("0");
+			$('.products', '#'+cat_id).append(li);
+			(function(key, id){
+				$('#'+id).tap(function() {
 					that.buy(key, function() {
 						});
 				});
-			})(key);
-			li.attr('id', 'prod-'+key.toString());
-			$('.price', li).html(price(prod.price));
-			$('.name', li).text(prod.name);
-			$('.count', li).text("0");
-			$('.products', '#'+id).append(li);
+				$('#'+id).swipe(function(evt, data) {
+					alert(data.direction);
+				});
+				console.info();
+			})(key, id);
 		}
 		for(var key in this.users) {
 			var user = this.users[key];
+			var id = 'user-'+key
 			var li = $('#userLiTemplate').clone();
-			li.attr('id', null);
+			li.attr('id', id);
 			li.text(user.name);
-			(function(){
-			 	var _id = key;
-				li.click(function(){
-					that.setUser(_id);
+			$('#userList').append(li);
+			(function(key, id){
+				$('#'+id).tap(function(){
+					that.setUser(key);
 					jQTouch.goBack('#main');
 				});
-			})();
-			$('#userList').append(li);
+			})(key, id);
 		}
 	},
 	setUser: function(id, callback) {

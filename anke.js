@@ -157,6 +157,8 @@ Anke.prototype = {
 			(function(key, id){
 			    var sel = $('#'+id+' *, #'+id);
 				sel.tap(function() {
+					$('#'+id).effect('highlight', {
+								color: 'lightgreen'});
 					that.buy(key, function() {
 						});
 				});
@@ -164,6 +166,8 @@ Anke.prototype = {
 					if(data.direction == 'left' ||
 					   data.direction == 'right') {
 						that.cancel(key, function() {
+							$('#'+id).effect('highlight', {
+										color: 'pink'});
 						});
 					}
 				});

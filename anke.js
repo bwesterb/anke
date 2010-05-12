@@ -136,13 +136,15 @@ Anke.prototype = {
 			$('.counter', li).text("0");
 			$('.products', '#'+cat_id).append(li);
 			(function(key, id){
-				$('#'+id).tap(function() {
+			    var sel = $('#'+id+' *, #'+id);
+				sel.tap(function() {
 					that.buy(key, function() {
 						});
 				});
-				$('#'+id).swipe(function(evt, data) {
+				sel.swipe(function(evt, data) {
 					alert(data.direction);
 				});
+				sel.addClass('touch');
 				console.info();
 			})(key, id);
 		}

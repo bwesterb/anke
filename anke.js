@@ -168,25 +168,25 @@ Anke.prototype = {
 			$('.products', '#'+cat_id).append(li);
 			(function(key, id){
 			    var sel = $('#'+id+' *, #'+id);
-				sel.tap(function() {
-					$('#'+id).effect('highlight', {
-								color: 'lightgreen'});
-					that.buy(key, function() {
-						});
-				});
-				sel.swipe(function(evt, data) {
-					if(data.direction == 'left' ||
-					   data.direction == 'right') {
-						that.cancel(key, function() {
-							$('#'+id).effect('highlight', {
-										color: 'pink'});
-						});
-					}
-				});
+				sel.data('prodId', key)
 				sel.addClass('touch');
-				console.info();
+				sel.addClass('productTouch');
 			})(key, id);
 		}
+		$('.productTouch').tap(function() {
+			var key = parseInt($(this).data('prodId'));	
+			$('#prod-'+key).effect('highlight', { color: 'lightgreen'});
+			that.buy(key, function() { });
+		});
+		$('.productTouch').swipe(function(evt, data) {
+			var key = parseInt($(this).data('prodId'));
+			if(data.direction == 'left' ||
+			   data.direction == 'right') {
+				that.cancel(key, function() {
+					$('#prod-'+key).effect('highlight', {color: 'pink'});
+				});
+			}
+		});
 		for(var key in this.users) {
 			var user = this.users[key];
 			var id = 'user-'+key
@@ -195,12 +195,14 @@ Anke.prototype = {
 			li.text(user.name);
 			$('#userList').append(li);
 			(function(key, id){
-				$('#'+id).tap(function(){
-					that.setUser(key);
-					jQTouch.goBack('#main');
-				});
+				$('#'+id).addClass('userTouch').data('userId', key);
 			})(key, id);
 		}
+		$('.userTouch').tap(function(){
+			var key = parseInt($(this).data('userId'));
+			that.setUser(key);
+			jQTouch.goBack('#main');
+		});
 	},
 	setUser: function(id, callback) {
 		var that = this;

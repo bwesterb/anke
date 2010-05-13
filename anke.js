@@ -317,18 +317,30 @@ Anke.prototype = {
 			t.executeSql('DROP TABLE IF EXISTS `users`', [], cbs[3]);
 		});
 	},
+	onEmptyDb: function(onEmpty, onNotEmpty) {
+		var that = this;
+		this.db.transaction(function(t) {
+			that.query(t, 'select count(*) from `transactions`', [],
+				onNotEmpty, onEmpty);
+		});
+	},
 	run: function() {
 		var that = this;
 		this.connectDb();
-		this.resetTables(function(){
-			that.fetchData(function(){
-				that.loadData(function(){
-					that.setUser(0, function() {
-						that.refreshProductList();
-					});
+		var cb = function() {
+			that.loadData(function(){
+				that.setUser(0, function() {
+					that.refreshProductList();
 				});
 			});
-		});
+		};
+		this.onEmptyDb(function(){
+			that.resetTables(function(){
+				that.fetchData(function(){
+					cb();
+				});
+			});
+		}, cb);
 		this.createMenu();
 	}
 }

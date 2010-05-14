@@ -434,6 +434,7 @@ Anke.prototype = {
 			});
 		}, cb);
 		this.createMenu();
+		jQTouch.goTo('#user', 'flip');
 	}
 }
 

@@ -25,12 +25,20 @@
 			<div id="main">
 				<div class="toolbar">
 					<h1>
-					<span class="user">(user)</span>
-					<span class="inRegister">(inRegister)</span>
+					<span class="inSet"
+						>(inSet)</span>
 					</h1>
-					<a class="button flip" href="#menu">Menu</a>
+					<a class="button commitSet" >Ok</a>
 				</div>
 				<ul id="catList" class="rounded">
+				</ul>
+				<ul class="rounded">
+					<li class="arrow"><a class="inRegister" href="#register">
+						(inRegister)</a></li>
+					<li class="arrow"><a class="user" href="#user">
+						(user)</a></li>
+					<li class="arrow"><a href="#menu">
+						Menu</a></li>
 				</ul>
 				<div class="info">
 					&copy; 2010 &mdash; Bas Westerbaan
@@ -53,7 +61,7 @@
 			<div id="register">
 				<div class="toolbar">
 					<h1>Wijzig kas</h1>
-					<a class="back" href="#menu">Terug</a>
+					<a class="back" href="#main">Terug</a>
 				</div>
 				<ul class="rounded"><li>
 					<input type="number" id="registerPermAmount"
@@ -64,7 +72,7 @@
 			<div id="user">
 				<div class="toolbar">
 					<h1>Wissel tapper</h1>
-					<a class="back" href="#menu">Terug</a>
+					<a class="back" href="#main">Terug</a>
 				</div>
 				<ul id="userList" class="rounded">
 				</ul>
@@ -77,10 +85,10 @@
 				<div id="catDivTemplate">
 					<div class="toolbar">
 						<h1>
-						<span class="user">(user)</span>
-						<span class="inRegister"
-							>(inRegister)</span>
+						<span class="inSet"
+							>(inSet)</span>
 						</h1>
+						<a class="button commitSet" >Ok</a>
 						<a class="back" href="#main">Terug</a>
 					</div>
 					<ul class="products rounded">

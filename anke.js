@@ -1,9 +1,11 @@
 /* vim: set ts=4 sw=4: */
 
 TRANS_SWITCH = 0;
-TRANS_PURCHASE = 1;
-TRANS_CANCEL = 2;
-TRANS_MANUAL = 3;
+TRANS_SET_ADD = 1;
+TRANS_SET_REMOVE = 2;
+TRANS_CANCEL = 3;
+TRANS_MANUAL = 4;
+TRANS_COMMIT = 5;
 
 function price(cents) {
 	var t1 = Math.floor(cents / 100);
@@ -79,6 +81,8 @@ Anke.prototype = {
 				var x = res.rows.item(0).x;
 				if(!x) x = 0;
 				that.inRegister = x;
+				that.inSet = 0;
+				that.inSet_lut = {};
 			});
 		}, null, callback);
 	},
@@ -93,46 +97,73 @@ Anke.prototype = {
 			});
 		});
 	},
+	_changeSet: function(amount) {
+		if(this.inSet == 0 && amount > 0)
+			$('.commitSet').show();
+		this.inSet += amount;
+		if(this.inSet == 0)
+			$('.commitSet').hide();
+		$('.inSet').html(price(this.inSet));
+	},
 	_changeRegister: function(amount) {
 		this.inRegister += amount;
 		$('.inRegister').html(price(this.inRegister));
 	},
+	_refresh_productCount: function(id) {
+		var t = this.products[id].count.toString();
+		var s = $('.counter', '#prod-'+id);
+		if(this.products[id].setCount) {
+			t += '+' + this.products[id].setCount.toString();
+			s.css('backgroundColor', 'red')
+		} else {
+			s.css('backgroundColor', null)
+		}
+		s.text(t);
+	},
 	reset_productCounts: function() {
 		for(var key in this.products) {
 			this.products[key].count = 0;
-			$('.counter', '#prod-'+key).text('0');
+			this.products[key].setCount = 0;
+			this._refresh_productCount(key);
 		}
 	},
 	cancel: function(id, callback) {
 		var that = this;
 		var li = $('#prod-'+id.toString());
-		if(this.products[id].count == 0)
+		var real = this.products[id].setCount == 0;
+		if(real && this.products[id].count == 0)
 			return;
 		this.db.transaction(function(t) {
 			that.query(t, 'INSERT INTO `transactions` '+
 						  '(`type`, `user`, `product`, `amount`, `at`) '+
 						  'VALUES (?, ?, ?, ?, ?)',
-					[TRANS_CANCEL, that.user, id, -that.products[id].price,
+					[real ? TRANS_CANCEL : TRANS_SET_REMOVE,
+					 that.user, id, -that.products[id].price,
 						new Date()], function(){
-				that.products[id].count--;
-				that._changeRegister(-that.products[id].price);
-				$('.counter' ,li).text(that.products[id].count);
+				if(real) {	
+					that.products[id].count--;
+					that._changeRegister(-that.products[id].price);
+				} else {
+					that.products[id].setCount--;
+					that._changeSet(-that.products[id].price);
+				}
+				that._refresh_productCount(id);
 				if(callback) callback();
 			});
 		});
 	},
-	buy: function(id, callback) {
+	addToSet: function(id, callback) {
 		var that = this;
 		var li = $('#prod-'+id.toString());
 		this.db.transaction(function(t) {
 			that.query(t, 'INSERT INTO `transactions` '+
 						  '(`type`, `user`, `product`, `amount`, `at`) '+
 						  'VALUES (?, ?, ?, ?, ?)',
-					[TRANS_PURCHASE, that.user, id, that.products[id].price,
+					[TRANS_SET_ADD, that.user, id, that.products[id].price,
 						new Date()], function(){
-				that.products[id].count++;
-				that._changeRegister(that.products[id].price);
-				$('.counter' ,li).text(that.products[id].count);
+				that.products[id].setCount++;
+				that._changeSet(that.products[id].price);
+				that._refresh_productCount(id);
 				if(callback) callback();
 			});
 		});
@@ -140,6 +171,7 @@ Anke.prototype = {
 	refreshProductList: function() {
 		var that = this;
 		$('.inRegister').html(price(this.inRegister));
+		$('.inSet').html(price(this.inSet));
 		if(!this.catDivs) this.catDivs = [];
 		$.each(that.catDivs, function(i, catDiv) { catDiv.remove(); });
 		$('#catList').empty();
@@ -176,7 +208,7 @@ Anke.prototype = {
 		$('.productTouch').tap(function() {
 			var key = parseInt($(this).data('prodId'));	
 			$('#prod-'+key).effect('highlight', { color: 'lightgreen'});
-			that.buy(key, function() { });
+			that.addToSet(key, function() { });
 		});
 		$('.productTouch').swipe(function(evt, data) {
 			var key = parseInt($(this).data('prodId'));
@@ -260,6 +292,22 @@ Anke.prototype = {
 		$('#send').tap(function(){
 			that.sendTransactions();
 			jQTouch.goBack('#main');
+		});
+		$('.commitSet').hide();
+		$('.commitSet').tap(function(){
+			that.commitSet();
+			jQTouch.goBack('#main');
+		});
+	},
+	commitSet: function() {
+		var that = this;
+		this._changeRegister(this.inSet);
+		this._changeSet(-this.inSet);
+		this.db.transaction(function(t){
+			that.query(t, "INSERT INTO `transactions` "+
+						  "(`type`, `user`, `at`, `amount`) "+
+						  "VALUES (?, ?, ?, 0)",
+						  [TRANS_COMMIT, id, new Date()]);
 		});
 	},
 	sendTransactions: function() {

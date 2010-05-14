@@ -25,20 +25,20 @@
 			<div id="main">
 				<div class="toolbar">
 					<h1>
-					<span class="inOrder"
-						>(inOrder)</span>
+					<span class="user">(User)</span>
+					<span class="inRegister">(inRegister)</span>
 					</h1>
-					<a class="button commitOrder" >Ok</a>
+					<a class="button flip" href="#menu">Menu</a>
 				</div>
+				<ul class="order"><li>
+					<em class="gotNoOrder">
+						Er is nog niets besteld
+					</em>
+					<a class="gotOrder" href="#">
+					+<span class="inOrder"
+						>(inOrder)</span></a>
+				</li></ul>
 				<ul id="catList" class="rounded">
-				</ul>
-				<ul class="rounded">
-					<li class="arrow"><a class="inRegister" href="#register">
-						(inRegister)</a></li>
-					<li class="arrow"><a class="user" href="#user">
-						(user)</a></li>
-					<li class="arrow"><a href="#menu">
-						Menu</a></li>
 				</ul>
 				<div class="info">
 					&copy; 2010 &mdash; Bas Westerbaan
@@ -85,12 +85,19 @@
 				<div id="catDivTemplate">
 					<div class="toolbar">
 						<h1>
-						<span class="inOrder"
-							>(inOrder)</span>
+						<span class="user">(User)</span>
+						<span class="inRegister">(inRegister)</span>
 						</h1>
-						<a class="button commitOrder" >Ok</a>
 						<a class="back" href="#main">Terug</a>
 					</div>
+					<ul class="order"><li>
+						<em class="gotNoOrder">
+							Er is nog niets besteld
+						</em>
+						<a class="gotOrder" href="#">
+						+<span class="inOrder"
+							>(inOrder)</span></a>
+					</li></ul>
 					<ul class="products rounded">
 					</ul>
 				</div>

@@ -98,11 +98,15 @@ Anke.prototype = {
 		});
 	},
 	_changeOrder: function(amount) {
-		if(this.inOrder == 0 && amount > 0)
-			$('.commitOrder').show();
+		if(this.inOrder == 0 && amount > 0) {
+			$('.gotOrder').show();
+			$('.gotNoOrder').hide();
+		}
 		this.inOrder += amount;
-		if(this.inOrder == 0)
-			$('.commitOrder').hide();
+		if(this.inOrder == 0) {
+			$('.gotOrder').hide();
+			$('.gotNoOrder').show();
+	    }
 		$('.inOrder').html(price(this.inOrder));
 	},
 	_changeRegister: function(amount) {
@@ -133,39 +137,37 @@ Anke.prototype = {
 		var real = this.products[id].orderCount == 0;
 		if(real && this.products[id].count == 0)
 			return;
+		if(real) {	
+			this.products[id].count--;
+			this._changeRegister(-this.products[id].price);
+		} else {
+			if(--this.products[id].orderCount == 0)
+				delete this.inOrder_lut[id];
+			this._changeOrder(-this.products[id].price);
+		}
+		that._refresh_productCount(id);
 		this.db.transaction(function(t) {
 			that.query(t, 'INSERT INTO `transactions` '+
 						  '(`type`, `user`, `product`, `amount`, `at`) '+
 						  'VALUES (?, ?, ?, ?, ?)',
 					[real ? TRANS_CANCEL : TRANS_ORDER_REMOVE,
 					 that.user, id, -that.products[id].price,
-						new Date()], function(){
-				if(real) {	
-					that.products[id].count--;
-					that._changeRegister(-that.products[id].price);
-				} else {
-					that.products[id].orderCount--;
-					that._changeOrder(-that.products[id].price);
-				}
-				that._refresh_productCount(id);
-				if(callback) callback();
-			});
+						new Date()], callback);
 		});
 	},
 	addToOrder: function(id, callback) {
 		var that = this;
 		var li = $('#prod-'+id.toString());
+		if(this.products[id].orderCount++ == 0)
+			this.inOrder_lut[id] = true;
+		this._changeOrder(that.products[id].price);
+		this._refresh_productCount(id);
 		this.db.transaction(function(t) {
 			that.query(t, 'INSERT INTO `transactions` '+
 						  '(`type`, `user`, `product`, `amount`, `at`) '+
 						  'VALUES (?, ?, ?, ?, ?)',
 					[TRANS_ORDER_ADD, that.user, id, that.products[id].price,
-						new Date()], function(){
-				that.products[id].orderCount++;
-				that._changeOrder(that.products[id].price);
-				that._refresh_productCount(id);
-				if(callback) callback();
-			});
+						new Date()], callback);
 		});
 	},
 	refreshProductList: function() {
@@ -293,8 +295,8 @@ Anke.prototype = {
 			that.sendTransactions();
 			jQTouch.goBack('#main');
 		});
-		$('.commitOrder').hide();
-		$('.commitOrder').tap(function(){
+		$('.gotOrder').hide();
+		$('.order li').tap(function(){
 			that.commitOrder();
 			jQTouch.goBack('#main');
 		});
@@ -303,6 +305,12 @@ Anke.prototype = {
 		var that = this;
 		this._changeRegister(this.inOrder);
 		this._changeOrder(-this.inOrder);
+		for(var key in this.inOrder_lut) {
+			this.products[key].count += this.products[key].orderCount;
+			this.products[key].orderCount = 0;
+			this._refresh_productCount(key);
+		}
+		this.inOrder_lut = {};
 		this.db.transaction(function(t){
 			that.query(t, "INSERT INTO `transactions` "+
 						  "(`type`, `user`, `at`, `amount`) "+

@@ -16,3 +16,7 @@ ul.rounded li em {
     left: 6px;
     right: auto;
 }
+
+#jqt ul.order li {
+    text-align: center;
+}

@@ -177,18 +177,18 @@
         }, 
         "35": {
             "category": 5, 
-            "price": 550, 
-            "name": "Lagavulin"
+            "price": 150, 
+            "name": "Ballentine's"
         }, 
         "36": {
             "category": 5, 
-            "price": 330, 
-            "name": "Dalwhinnie"
+            "price": 170, 
+            "name": "Jameson (normaal)"
         }, 
         "37": {
             "category": 5, 
-            "price": 550, 
-            "name": "Highland Park 18"
+            "price": 200, 
+            "name": "Jack Daniel's"
         }, 
         "38": {
             "category": 5, 
@@ -202,67 +202,82 @@
         }, 
         "40": {
             "category": 5, 
-            "price": 170, 
-            "name": "Jameson (normaal)"
-        }, 
+            "price": 270, 
+            "name": "Jameson 12"
+        },
         "41": {
-            "category": 5, 
-            "price": 400, 
-            "name": "The Macallan"
-        }, 
-        "42": {
-            "category": 5, 
-            "price": 330, 
-            "name": "Dimple"
-        }, 
-        "43": {
-            "category": 5, 
-            "price": 330, 
-            "name": "Cragganmore"
-        }, 
-        "44": {
             "category": 5, 
             "price": 300, 
             "name": "Highland Park 12"
         }, 
-        "45": {
+        "42": {
             "category": 5, 
             "price": 300, 
             "name": "The Glenlivet 12"
         }, 
+        "43": {
+            "category": 5, 
+            "price": 330, 
+            "name": "Dalwhinnie"
+        }, 
+        "44": {
+            "category": 5, 
+            "price": 330, 
+            "name": "Dimple"
+        }, 
+        "45": {
+            "category": 5, 
+            "price": 330, 
+            "name": "Cragganmore"
+        }, 
         "46": {
+            "category": 5, 
+            "price": 400, 
+            "name": "The Macallan"
+        }, 
+        "47": {
             "category": 5, 
             "price": 400, 
             "name": "Oban"
         }, 
-        "47": {
-            "category": 5, 
-            "price": 200, 
-            "name": "Jack Daniel's"
-        }, 
         "48": {
             "category": 5, 
             "price": 550, 
-            "name": "The Glenliver 18"
+            "name": "Lagavulin"
         }, 
         "49": {
             "category": 5, 
-            "price": 150, 
-            "name": "Ballentine's"
+            "price": 550, 
+            "name": "Highland Park 18"
         }, 
         "50": {
             "category": 5, 
-            "price": 270, 
-            "name": "Jameson 12"
-        }
+            "price": 550, 
+            "name": "The Glenliver 18"
+        } 
     }, 
     "users": {
-	"0": {
-	    "name": "Bas"
-	},
-	"1": {
-	    "name": "Anke"
-	}
+	"0": { "name": "?" },
+	"1": { "name": "Anke" },
+	"2": { "name": "Bas" },
+	"3": { "name": "Bente" },
+	"4": { "name": "Bram" },
+	"5": { "name": "Bregje" },
+	"6": { "name": "Chris" },
+	"7": { "name": "Dirk" },
+	"8": { "name": "Frits" },
+	"9": { "name": "Jesper" },
+	"10": { "name": "Jille" },
+	"11": { "name": "Judith" },
+	"12": { "name": "Jurrien" },
+	"13": { "name": "Koen" },
+	"14": { "name": "Loesje" },
+	"15": { "name": "Michiel" },
+	"16": { "name": "Oliver" },
+	"17": { "name": "Pieter-Paul" },
+	"18": { "name": "Rik" },
+	"19": { "name": "Sara" },
+	"20": { "name": "Steef" }
     }, 
     "categories": {
         "0": {
@@ -277,7 +292,7 @@
         "3": {
             "name": "Likeuren"
         }, 
-        "2": {
+        "4": {
             "name": "Wodka en Rum"
         }, 
         "5": {

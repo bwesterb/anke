@@ -54,7 +54,10 @@ Anke.prototype = {
 			that.query(t, "SELECT * FROM `categories`", [], function(t, res) {
 				for(var i=0; i<res.rows.length; i++) {
 					var row = res.rows.item(i);
-					that.categories[row.id] = { name: row['name'] };
+					that.categories[row.id] = {
+						name: row['name'],
+						orderCount: 0
+					};
 				}
 			});
 			that.query(t, "SELECT * FROM `products`", [], function(t, res) {
@@ -64,7 +67,8 @@ Anke.prototype = {
 						name: row['name'],
 						price: row['price'],
 						category: row['category'],
-						count: 0
+						count: 0,
+						orderCount: 0
 					};
 				}
 			});
@@ -113,22 +117,38 @@ Anke.prototype = {
 		this.inRegister += amount;
 		$('.inRegister').html(price(this.inRegister));
 	},
-	_refresh_productCount: function(id) {
+	_refresh_categoryCount: function(id, previous) {
+		var s = $('.catCounter', '#catli-'+id);
+		if(this.categories[id].orderCount > 0) {
+			s.text(this.categories[id].orderCount.toString());
+			if(previous == 0) {
+				s.addClass('counter');
+				s.show();
+			}
+		} else {
+			if(previous > 0) {
+				s.hide();
+				s.removeClass('counter');
+			}
+		}
+	},
+	_refresh_productCount: function(id, previous) {
 		var t = this.products[id].count.toString();
 		var s = $('.counter', '#prod-'+id);
-		if(this.products[id].orderCount) {
+		if(this.products[id].orderCount)
 			t += '+' + this.products[id].orderCount.toString();
+		if(previous == 0 && this.products[id].orderCount > 0)
 			s.css('backgroundColor', 'red')
-		} else {
+		if(previous > 0 && this.products[id].orderCount == 0)
 			s.css('backgroundColor', null)
-		}
 		s.text(t);
 	},
 	reset_productCounts: function() {
 		for(var key in this.products) {
 			this.products[key].count = 0;
+			var tmp = this.products[key].orderCount;
 			this.products[key].orderCount = 0;
-			this._refresh_productCount(key);
+			this._refresh_productCount(key, tmp);
 		}
 	},
 	cancel: function(id, callback) {
@@ -137,15 +157,18 @@ Anke.prototype = {
 		var real = this.products[id].orderCount == 0;
 		if(real && this.products[id].count == 0)
 			return;
+		var oldOrderCount = this.products[id].orderCount;
 		if(real) {	
 			this.products[id].count--;
 			this._changeRegister(-this.products[id].price);
 		} else {
 			if(--this.products[id].orderCount == 0)
 				delete this.inOrder_lut[id];
+			this._refresh_categoryCount(this.products[id].category,
+					this.categories[this.products[id].category].orderCount--);
 			this._changeOrder(-this.products[id].price);
 		}
-		that._refresh_productCount(id);
+		that._refresh_productCount(id, oldOrderCount);
 		this.db.transaction(function(t) {
 			that.query(t, 'INSERT INTO `transactions` '+
 						  '(`type`, `user`, `product`, `amount`, `at`) '+
@@ -158,10 +181,12 @@ Anke.prototype = {
 	addToOrder: function(id, callback) {
 		var that = this;
 		var li = $('#prod-'+id.toString());
+		this._refresh_categoryCount(this.products[id].category,
+				this.categories[this.products[id].category].orderCount++);
 		if(this.products[id].orderCount++ == 0)
 			this.inOrder_lut[id] = true;
 		this._changeOrder(that.products[id].price);
-		this._refresh_productCount(id);
+		this._refresh_productCount(id, this.products[id].orderCount - 1);
 		this.db.transaction(function(t) {
 			that.query(t, 'INSERT INTO `transactions` '+
 						  '(`type`, `user`, `product`, `amount`, `at`) '+
@@ -181,7 +206,7 @@ Anke.prototype = {
 			var cat = this.categories[key];
 			var id = 'cat-' + key.toString();
 			var li = $('#catLiTemplate').clone();
-			li.attr('id', null);
+			li.attr('id', 'catli-'+key);
 			$('a', li).text(cat.name);
 			$('a', li).attr('href', '#'+id);
 			$('#catList').append(li);
@@ -209,7 +234,8 @@ Anke.prototype = {
 		}
 		$('.productTouch').tap(function() {
 			var key = parseInt($(this).data('prodId'));	
-			$('#prod-'+key).effect('highlight', { color: 'lightgreen'});
+			$('#prod-'+key).stop(true, true).effect(
+				'highlight', { color: 'lightgreen'});
 			that.addToOrder(key, function() { });
 		});
 		$('.productTouch').swipe(function(evt, data) {
@@ -217,7 +243,8 @@ Anke.prototype = {
 			if(data.direction == 'left' ||
 			   data.direction == 'right') {
 				that.cancel(key, function() {
-					$('#prod-'+key).effect('highlight', {color: 'pink'});
+					$('#prod-'+key).stop(true, true).effect(
+						'highlight', {color: 'pink'});
 				});
 			}
 		});
@@ -300,6 +327,7 @@ Anke.prototype = {
 			that.commitOrder();
 			jQTouch.goBack('#main');
 		});
+		$('.catCounter').hide().css('backgroundColor', 'red');
 	},
 	commitOrder: function() {
 		var that = this;
@@ -307,15 +335,21 @@ Anke.prototype = {
 		this._changeOrder(-this.inOrder);
 		for(var key in this.inOrder_lut) {
 			this.products[key].count += this.products[key].orderCount;
+			var tmp = this.products[key].orderCount;
 			this.products[key].orderCount = 0;
-			this._refresh_productCount(key);
+			this._refresh_productCount(key, tmp);
+		}
+		for(var key in this.categories) {
+			var tmp = this.categories[key].orderCount;
+			this.categories[key].orderCount = 0;
+			this._refresh_categoryCount(key, tmp);
 		}
 		this.inOrder_lut = {};
 		this.db.transaction(function(t){
 			that.query(t, "INSERT INTO `transactions` "+
 						  "(`type`, `user`, `at`, `amount`) "+
 						  "VALUES (?, ?, ?, 0)",
-						  [TRANS_COMMIT, id, new Date()]);
+						  [TRANS_COMMIT, that.user, new Date()]);
 		});
 	},
 	sendTransactions: function() {

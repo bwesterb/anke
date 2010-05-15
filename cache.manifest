@@ -1,5 +1,7 @@
 CACHE MANIFEST
 
+# Version: alpha 1
+
 NETWORK:
 data.json
 submit.php

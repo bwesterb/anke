@@ -79,6 +79,8 @@ Anke.prototype = {
 						name: row['name']
 					};
 				}
+				var user = localStorage.anke_user;
+				that.setUser((!user || user == 'undefined') ? 0 : user);
 			});
 			that.query(t, "SELECT SUM(amount) AS x FROM `transactions` ",
 					[], function(t, res) {
@@ -267,6 +269,7 @@ Anke.prototype = {
 	},
 	setUser: function(id, callback) {
 		var that = this;
+		localStorage.anke_user = id;
 		this.db.transaction(function(t) {
 			that.query(t, "INSERT INTO `transactions` "+
 						  "(`type`, `user`, `at`, `amount`) "+
@@ -421,9 +424,7 @@ Anke.prototype = {
 		this.connectDb();
 		var cb = function() {
 			that.loadData(function(){
-				that.setUser(0, function() {
-					that.refreshProductList();
-				});
+				that.refreshProductList();
 			});
 		};
 		this.onEmptyDb(function(){
@@ -434,7 +435,6 @@ Anke.prototype = {
 			});
 		}, cb);
 		this.createMenu();
-		jQTouch.goTo('#user', 'flip');
 	}
 }
 

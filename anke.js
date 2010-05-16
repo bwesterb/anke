@@ -14,6 +14,37 @@ function price(cents) {
 	return "&euro;" + t1 + '.' + t2;
 }
 
+function Set() {
+	this.data = {}
+	return this;
+}
+
+Set.prototype = {
+	add: function(x) {
+		this.data[x] = null;
+	},
+	has: function(x) {
+		return x in this.data;
+	},
+	remove: function(x) {
+		delete this.data[x];
+	},
+	get: function(x, def) {
+		if(x in this.data)
+			return this.data[x];
+		return def;
+	},
+	extend: function(list) {
+		for(var i = 0; i < list.length; i++)
+			this.data[list[i]] = null;
+	},
+	forEach: function(callback) {
+		for(var k in this.data) {
+			callback(k);
+		}
+	}
+};
+
 function Anke() {
 	return this;
 }

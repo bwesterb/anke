@@ -1,12 +1,5 @@
 /* vim: set ts=4 sw=4: */
 
-TRANS_SWITCH = 0;
-TRANS_ORDER_ADD = 1;
-TRANS_ORDER_REMOVE = 2;
-TRANS_CANCEL = 3;
-TRANS_MANUAL = 4;
-TRANS_COMMIT = 5;
-
 function price(cents) {
 	var t1 = Math.floor(cents / 100);
 	var t2 = (cents % 100).toString();
@@ -110,26 +103,35 @@ Anke.prototype = {
 						name: row['name']
 					};
 				}
-				var user = localStorage.anke_user;
-				that.setUser((!user || user == 'undefined') ? 0 : user);
+				that.query(t, "SELECT `user` FROM `userLog` "+
+							  "ORDER BY id DESC LIMIT 1", [], function(t, res) {
+					var user = res.rows.length == 1 ? res.rows.item(0).user : 0;
+					that.setUser(user);
+				});
 			});
-			that.query(t, "SELECT SUM(amount) AS x FROM `transactions` ",
+			that.query(t, "SELECT SUM(amount) AS x FROM `registerLog` ",
 					[], function(t, res) {
-				var x = res.rows.item(0).x;
-				if(!x) x = 0;
-				that.inRegister = x;
-				that.inOrder = 0;
-				that.inOrder_lut = {};
+				that.query(t, "SELECT SUM(`products`.`price`) AS x FROM "+
+							  "`sold` LEFT JOIN `products` "+
+							  "ON `products`.`id` = `sold`.`product` "+
+							  "WHERE `sold`.`committed` = 1", [],
+					function(t, res2) {
+						var x = res.rows.item(0).x + res2.rows.item(0).x;
+						if(!x) x = 0;
+						that.inRegister = x;
+						that.inOrder = 0;
+						that.inOrder_lut = {};
+				});
 			});
 		}, null, callback);
 	},
 	changeRegister: function(amount) {
 		var that = this;
 		this.db.transaction(function(t) {
-			that.query(t, 'INSERT INTO `transactions` '+
-						  '(`type`, `user`, `amount`, `at`) '+
-							  'VALUES (?, ?, ?, ?)',
-					[TRANS_MANUAL, that.user, amount, new Date()], function(){
+			that.query(t, 'INSERT INTO `registerLog` '+
+						  '(`amount`, `at`) '+
+							  'VALUES (?, ?)',
+					[amount, Date.now()], function(){
 				that._changeRegister(amount);
 			});
 		});
@@ -203,12 +205,10 @@ Anke.prototype = {
 		}
 		that._refresh_productCount(id, oldOrderCount);
 		this.db.transaction(function(t) {
-			that.query(t, 'INSERT INTO `transactions` '+
-						  '(`type`, `user`, `product`, `amount`, `at`) '+
-						  'VALUES (?, ?, ?, ?, ?)',
-					[real ? TRANS_CANCEL : TRANS_ORDER_REMOVE,
-					 that.user, id, -that.products[id].price,
-						new Date()], callback);
+			that.query(t, 'INSERT INTO `sold` '+
+						  '(`committed`, `count`, `product`, `at`) '+
+						  'VALUES (?, ?, ?, ?)',
+					[real, -1, id, Date.now()], callback);
 		});
 	},
 	addToOrder: function(id, callback) {
@@ -221,11 +221,10 @@ Anke.prototype = {
 		this._changeOrder(that.products[id].price);
 		this._refresh_productCount(id, this.products[id].orderCount - 1);
 		this.db.transaction(function(t) {
-			that.query(t, 'INSERT INTO `transactions` '+
-						  '(`type`, `user`, `product`, `amount`, `at`) '+
-						  'VALUES (?, ?, ?, ?, ?)',
-					[TRANS_ORDER_ADD, that.user, id, that.products[id].price,
-						new Date()], callback);
+			that.query(t, 'INSERT INTO `sold` '+
+						  '(`committed`, `count`, `product`, `at`) '+
+						  'VALUES (0, ?, ?, ?)',
+						  [1, id, Date.now()], callback)
 		});
 	},
 	refreshProductList: function() {
@@ -300,11 +299,9 @@ Anke.prototype = {
 	},
 	setUser: function(id, callback) {
 		var that = this;
-		localStorage.anke_user = id;
 		this.db.transaction(function(t) {
-			that.query(t, "INSERT INTO `transactions` "+
-						  "(`type`, `user`, `at`, `amount`) "+
-						  "VALUES (?, ?, ?, 0)", [TRANS_SWITCH, id, new Date()],
+			that.query(t, "INSERT INTO `userLog` (`at`, `user`) "+
+						  "VALUES (?, ?)", [Date.now(), id],
 				function() {
 					$('.user').text(that.users[id].name);
 					that.user = id;
@@ -380,25 +377,42 @@ Anke.prototype = {
 		}
 		this.inOrder_lut = {};
 		this.db.transaction(function(t){
-			that.query(t, "INSERT INTO `transactions` "+
-						  "(`type`, `user`, `at`, `amount`) "+
-						  "VALUES (?, ?, ?, 0)",
-						  [TRANS_COMMIT, that.user, new Date()]);
+			that.query(t, "UPDATE `sold` SET `committed`=1 WHERE `committed`=0",
+						[]);
 		});
 	},
 	sendTransactions: function() {
 		var that = this;
+		var ret = {};
 		this.db.transaction(function(t){
-			that.query(t, "SELECT * FROM `transactions` ", [],
+			that.query(t, "SELECT * FROM `sold` ", [],
 					function(t, res) {
-				var ret = [];
+				ret['sold'] = [];
 				for(var i=0; i<res.rows.length; i++) {
 					var row = res.rows.item(i);
-					ret.push([row.id, row.type, row.at, row.amount, row.user,
-								row.product]);
+					ret['sold'].push([row.id, row.at, row.count, row.committed,
+					   					row.product]);
 				}
-				$.post('submit.php', {data: JSON.stringify(ret)});
 			});
+			that.query(t, "SELECT * FROM `userLog` ", [],
+					function(t, res) {
+				ret['userLog'] = [];
+				for(var i=0; i<res.rows.length; i++) {
+					var row = res.rows.item(i);
+					ret['userLog'].push([row.id, row.at, row.user]);
+				}
+			});
+			that.query(t, "SELECT * FROM `registerLog` ", [],
+					function(t, res) {
+				ret['registerLog'] = [];
+				for(var i=0; i<res.rows.length; i++) {
+					var row = res.rows.item(i);
+					ret['registerLog'].push([row.id, row.at, row.amount]);
+				}
+			});
+		}, null, function() {
+			$.post('submit.php', {data: JSON.stringify(ret)});
+			console.log(ret);
 		});
     },
 	connectDb: function() {
@@ -416,8 +430,8 @@ Anke.prototype = {
 	resetTables: function(callback) {
 		query = this.query;
 		this.db.transaction(function(t){
-			var cbs = create_join(4, function() {
-				var cbs2 = create_join(4, callback);
+			var cbs = create_join(7, function() {
+				var cbs2 = create_join(7, callback);
 				query(t, 'CREATE TABLE `categories` ('+
 						 '   id INTEGER PRIMARY KEY,'+
 						 '   name TEXT)', [], cbs2[0]);
@@ -426,27 +440,40 @@ Anke.prototype = {
 						 '   price INT,'+
 						 '   category INT,'+
 						 '   name TEXT)', [], cbs2[1]);
-				query(t, 'CREATE TABLE `transactions` ('+
+				query(t, 'CREATE TABLE `sold` ('+
 						 '   id INTEGER PRIMARY KEY,'+
-						 '   type INTEGER,'+
-						 '   at DATETIME,'+
-						 '   amount INTEGER,'+
-						 '   user INTEGER,'+
+						 '   at INTEGER,'+
+						 '   count INTEGER,'+
+						 '   committed INTEGER,'+
 						 '   product INTEGER)', [], cbs2[2]);
+				query(t, 'CREATE INDEX sold_committed '+
+						 'ON `sold` (committed)', [], cbs2[3]);
 				query(t, 'CREATE TABLE `users` ('+
 				         '   id INTEGER PRIMARY KEY,'+
-				         '   name INTEGER)', [], cbs2[3]);
+				         '   name INTEGER)', [], cbs2[4]);
+				query(t, 'CREATE TABLE `registerLog` ('+
+						 '   id INTEGER PRIMARY KEY,'+
+						 '   at INTEGER,'+
+						 '   amount INTEGER)', [], cbs2[5]);
+				query(t, 'CREATE TABLE `userLog` ('+
+						 '   id INTEGER PRIMARY KEY,'+
+						 '   at INTEGER,'+
+						 '   user INTEGER)', [], cbs2[6]);
 			});
 			query(t, 'DROP TABLE IF EXISTS `categories`', [], cbs[0]);
-			query(t, 'DROP TABLE IF EXISTS `transactions`', [], cbs[1]);
+			query(t, 'DROP TABLE IF EXISTS `sold`', [], cbs[1]);
 			t.executeSql('DROP TABLE IF EXISTS `products`', [], cbs[2]);
-			t.executeSql('DROP TABLE IF EXISTS `users`', [], cbs[3]);
+			t.executeSql('DROP INDEX IF EXISTS sold_committed', 
+							[], cbs[3]);
+			t.executeSql('DROP TABLE IF EXISTS `users`', [], cbs[4]);
+			t.executeSql('DROP TABLE IF EXISTS `userLog`', [], cbs[5]);
+			t.executeSql('DROP TABLE IF EXISTS `registerLog`', [], cbs[6]);
 		});
 	},
 	onEmptyDb: function(onEmpty, onNotEmpty) {
 		var that = this;
 		this.db.transaction(function(t) {
-			that.query(t, 'select count(*) from `transactions`', [],
+			that.query(t, 'select count(*) from `sold`', [],
 				onNotEmpty, onEmpty);
 		});
 	},

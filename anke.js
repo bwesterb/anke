@@ -295,14 +295,23 @@ function AnkeUI(main) {
 AnkeUI.prototype = {
 	initialize: function() {
 		(function(that){
-			$('.submit', '#register').tap(function(evt, data) {
-				that.on_changeRegister_tap(that, evt, data);
+			$('.submit', '#register').addClass('ourTouch').data('touch',
+								'on_changeRegister_tap');
+			$('#send').addClass('ourTouch').data('touch',
+								'on_sendTransactions_tap');
+			$('.order li').addClass('ourTouch').data('touch',
+								'on_commitOrder_tap');
+			$('.ourTouch').tap(function(evt, data) {
+				var $t = $(this);
+				var id = parseInt($t.data('id'));
+				if($t.data('touch'))
+					that[$t.data('touch')](that, id, evt, data);
 			});
-			$('#send').tap(function(evt, data){
-				that.on_sendTransactions_tap(that, evt, data);
-			});
-			$('.order li').tap(function(evt, data){
-				that.on_commitOrder_tap(that, evt, data);
+			$('.ourTouch').swipe(function(evt, data) {
+				var $t = $(this);
+				var id = parseInt($t.data('id'));
+				if($t.data('swipe'))
+					that[$t.data('swipe')](that, id, evt, data);
 			});
 		})(this);
 		$('.gotOrder').hide();
@@ -372,6 +381,8 @@ AnkeUI.prototype = {
 			$('a', li).attr('href', '#'+id);
 			$('#catList').append(li);
 			var div = $('#catDivTemplate').clone();
+			$('.order li', div).addClass('ourTouch').data('touch',
+								'on_commitOrder_tap');
 			div.attr('id', id);
 			$('#jqt').append(div);
 			this.catDivs.push(div);
@@ -387,20 +398,12 @@ AnkeUI.prototype = {
 			$('.counter', li).text("0");
 			$('.products', '#'+cat_id).append(li);
 			var sel = $('#'+id+' *, #'+id);
-			sel.data('prodId', key)
+			sel.data('id', key)
+			sel.data('touch', 'on_product_tap')
+			sel.data('swipe', 'on_product_swipe')
 			sel.addClass('touch');
-			sel.addClass('productTouch');
+			sel.addClass('ourTouch');
 		}
-		(function(that){
-			$('.productTouch').tap(function(evt, data) {
-				that.on_product_tap(that, parseInt($(this).data('prodId')),
-				   						evt, data);
-			});
-			$('.productTouch').swipe(function(evt, data) {
-				that.on_product_swipe(that, parseInt($(this).data('prodId')),
-				   						evt, data);
-			});
-		})(this);
 	},
 	updateUserMenu: function(users){	
 		for(var key in users) {
@@ -410,14 +413,11 @@ AnkeUI.prototype = {
 			li.attr('id', id);
 			li.text(user.name);
 			$('#userList').append(li);
-			$('#'+id).addClass('userTouch').data('userId', key);
+			var sel = $('#'+id);
+			sel.addClass('ourTouch');
+			sel.data('id', key);
+			sel.data('touch', 'on_user_tap');
 		}
-		(function(that){
-			$('.userTouch').tap(function(evt, data) {
-				that.on_user_tap(that, parseInt($(this).data('userId')),
-									evt, data);
-			});
-		})(this);
 	},
 	on_changeRegister_tap: function(that) {
 		var v = parseFloat($('#registerPermAmount').attr('value'));
@@ -447,11 +447,11 @@ AnkeUI.prototype = {
 			that.main.cancel(id);
 		}
 	},
-	on_sendTransactions_tap: function(that, evt, data) {
+	on_sendTransactions_tap: function(that) {
 		that.main.sendTransactions();
 		jQTouch.goBack('#main');
 	},
-	on_commitOrder_tap: function(that, evt, data) {
+	on_commitOrder_tap: function(that) {
 		that.main.commitOrder();
 		jQTouch.goBack('#main');
 	}

@@ -509,14 +509,16 @@ Anke.prototype = {
 	fetchData:function(callback) {
 		var that = this;
 		$.getJSON('data.json', function(data) {
-			for(var id in data.categories)
-				that.db.add_category(id, data.categories[id].name);
-			for(var id in data.users)
-				that.db.add_user(id, data.users[id].name);
-			for(var id in data.products) {
-				var p = data.products[id];
-				that.db.add_product(id, p.name, p.price, p.category);
-			}
+			that.db.transaction(function(){
+				for(var id in data.categories)
+					that.db.add_category(id, data.categories[id].name);
+				for(var id in data.users)
+					that.db.add_user(id, data.users[id].name);
+				for(var id in data.products) {
+					var p = data.products[id];
+					that.db.add_product(id, p.name, p.price, p.category);
+				}
+			}, null, callback);
 		});
 	},
 	commitOrder: function() {

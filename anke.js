@@ -80,7 +80,7 @@ AnkeDb.prototype = {
 		t.executeSql(query, args, success, failure);
 	},
 	resetTables: function(callback) {
-		query = this.query;
+		var query = this.query;
 		this.db.transaction(function(t){
 			var cbs = create_join(7, function() {
 				var cbs2 = create_join(7, callback);

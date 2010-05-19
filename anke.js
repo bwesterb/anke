@@ -85,6 +85,9 @@ AnkeDb.prototype = {
 		else
 			this.db.transaction(_main);
 	},
+	transaction: function(callback, failure, success) {
+		this.db.transaction(callback, failure, success);
+	},
 	resetTables: function(callback) {
 		var query = this.query;
 		this.db.transaction(function(t){

@@ -77,7 +77,13 @@ AnkeDb.prototype = {
 				console.log("Query failed: " + query);
 			}
 		}
-		t.executeSql(query, args, success, failure);
+		var _main = function(t) {
+			t.executeSql(query, args, success, failure);
+		};
+		if(t)
+			_main(t)
+		else
+			this.db.transaction(_main);
 	},
 	resetTables: function(callback) {
 		var query = this.query;
@@ -122,164 +128,117 @@ AnkeDb.prototype = {
 			query(t, 'DROP TABLE IF EXISTS `registerLog`', [], cbs[6]);
 		});
 	},
-	onEmptyDb: function(onEmpty, onNotEmpty) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, 'select count(*) from `sold`', [],
-				onNotEmpty, onEmpty);
-		});
+	onEmptyDb: function(onEmpty, onNotEmpty, t) {
+		this.query(t, 'select count(*) from `sold`', [],
+			onNotEmpty, onEmpty);
 	},
 	initialize: function() {
 		this.db = openDatabase("Anke", "1.0", "Anke");
 	},
-	get_categories: function(callback) {
+	get_categories: function(callback, t) {
+		this.query(t, "SELECT * FROM `categories`", [], function(t, res) {
+			var categories = {};
+			for(var i=0; i<res.rows.length; i++) {
+				var row = res.rows.item(i);
+				categories[row.id] = {
+					name: row['name'],
+				};
+			}
+			callback(categories);
+		});
+	},
+	get_products: function(callback, t) {
+		this.query(t, "SELECT * FROM `products`", [], function(t, res) {
+			var products = {};
+			for(var i=0; i<res.rows.length; i++) {
+				var row = res.rows.item(i);
+				products[row.id] = {
+					name: row['name'],
+					price: row['price'],
+					category: row['category'],
+				};
+			}
+			callback(products);
+		});
+	},
+	get_users: function(callback, t) {
+		this.query(t, "SELECT * FROM `users`", [], function(t, res) {
+			var users = {};
+			for(var i=0; i<res.rows.length; i++) {
+				var row = res.rows.item(i);
+				users[row.id] = {
+					name: row['name']
+				};
+			}
+			callback(users);
+		});
+	},
+	get_currentUser: function(callback, t) {
+		this.query(t, "SELECT `user` FROM `userLog` "+
+					  "ORDER BY id DESC LIMIT 1", [], function(t, res) {
+			var currentUser = res.rows.length == 1 ?
+							res.rows.item(0).user : 0;
+			callback(currentUser);
+		});
+	},
+	get_inRegister: function(callback, t) {
 		var that = this;
-		this.db.transaction(function(t){
-			that.query(t, "SELECT * FROM `categories`", [], function(t, res) {
-				var categories = {};
-				for(var i=0; i<res.rows.length; i++) {
-					var row = res.rows.item(i);
-					categories[row.id] = {
-						name: row['name'],
-					};
-				}
-				callback(categories);
+		this.query(t, "SELECT SUM(amount) AS x FROM `registerLog` ",
+				[], function(t, res) {
+			that.query(t, "SELECT SUM(`products`.`price`) AS x FROM "+
+						  "`sold` LEFT JOIN `products` "+
+						  "ON `products`.`id` = `sold`.`product` "+
+						  "WHERE `sold`.`committed` = 1", [],
+				function(t, res2) {
+					var x = res.rows.item(0).x + res2.rows.item(0).x;
+					if(!x) x = 0;
+					callback(x);
 			});
 		});
 	},
-	get_products: function(callback) {
-		var that = this;
-		this.db.transaction(function(t){
-			that.query(t, "SELECT * FROM `products`", [], function(t, res) {
-				var products = {};
-				for(var i=0; i<res.rows.length; i++) {
-					var row = res.rows.item(i);
-					products[row.id] = {
-						name: row['name'],
-						price: row['price'],
-						category: row['category'],
-					};
-				}
-				callback(products);
-			});
-		});
+	changeRegister: function(amount, at, callback, t) {
+		this.query(t, 'INSERT INTO `registerLog` '+
+						  '(`amount`, `at`) VALUES (?, ?)',
+				[amount, at], callback);
 	},
-	get_users: function(callback) {
-		var that = this;
-		this.db.transaction(function(t){
-			that.query(t, "SELECT * FROM `users`", [], function(t, res) {
-				var users = {};
-				for(var i=0; i<res.rows.length; i++) {
-					var row = res.rows.item(i);
-					users[row.id] = {
-						name: row['name']
-					};
-				}
-				callback(users);
-			});
-		});
+	add_sold: function(committed, count, product, at, callback, t) {
+		this.query(t, 'INSERT INTO `sold` '+
+					  '(`committed`, `count`, `product`, `at`) '+
+					  'VALUES (?, ?, ?, ?)',
+				[committed, count, product, at], callback);
 	},
-	get_currentUser: function(callback) {
-		var that = this;
-		this.db.transaction(function(t){
-			that.query(t, "SELECT `user` FROM `userLog` "+
-						  "ORDER BY id DESC LIMIT 1", [], function(t, res) {
-				var currentUser = res.rows.length == 1 ?
-								res.rows.item(0).user : 0;
-				callback(currentUser);
-			});
-		});
+	changeUser: function(id, at, callback, t) {
+		this.query(t, "INSERT INTO `userLog` (`at`, `user`) "+
+					  "VALUES (?, ?)", [at, id], callback);
 	},
-	get_inRegister: function(callback) {
-		var that = this;
-		this.db.transaction(function(t){
-			that.query(t, "SELECT SUM(amount) AS x FROM `registerLog` ",
-					[], function(t, res) {
-				that.query(t, "SELECT SUM(`products`.`price`) AS x FROM "+
-							  "`sold` LEFT JOIN `products` "+
-							  "ON `products`.`id` = `sold`.`product` "+
-							  "WHERE `sold`.`committed` = 1", [],
-					function(t, res2) {
-						var x = res.rows.item(0).x + res2.rows.item(0).x;
-						if(!x) x = 0;
-						callback(x);
-				});
-			});
-		});
+	add_category: function(id, name, callback, t) {
+		this.query(t, "INSERT INTO `categories`	(`id`, `name`)"+
+				  "VALUES (?, ?)", [id, name], callback);
 	},
-	changeRegister: function(amount, at, callback) {
-		var that = this;
-		this.db.transaction(function(t){
-			that.query(t, 'INSERT INTO `registerLog` '+
-							  '(`amount`, `at`) VALUES (?, ?)',
-					[amount, at], callback);
-		});
+	add_user: function(id, name, callback, t) {
+		this.query(t, "INSERT INTO `users`"+
+					  "(`id`, `name`)"+
+					  "VALUES (?, ?)",
+					  [id, name], callback);
 	},
-	add_sold: function(committed, count, product, at, callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, 'INSERT INTO `sold` '+
-						  '(`committed`, `count`, `product`, `at`) '+
-						  'VALUES (?, ?, ?, ?)',
-					[committed, count, product, at], callback);
-		});
+	add_product: function(id, name, price, category, callback, t) {
+		this.query(t, "INSERT INTO `products`"+
+					  "(`id`, `name`, `price`, `category`)"+
+					  "VALUES (?, ?, ?, ?)",
+					  [id, name, price, category], callback);
 	},
-	changeUser: function(id, at, callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, "INSERT INTO `userLog` (`at`, `user`) "+
-						  "VALUES (?, ?)", [at, id], callback);
-		});
+	commitOrder: function(callback, t) {
+		this.query(t, "UPDATE `sold` SET `committed`=1 WHERE `committed`=0",
+					[], callback);
 	},
-	add_category: function(id, name, callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, "INSERT INTO `categories`	(`id`, `name`)"+
-					  "VALUES (?, ?)", [id, name], callback);
-		});
+	get_userLog: function(callback, t) {
+		this.query(t, "SELECT * FROM `userLog` ", [], callback);
 	},
-	add_user: function(id, name, callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, "INSERT INTO `users`"+
-						  "(`id`, `name`)"+
-						  "VALUES (?, ?)",
-						  [id, name], callback);
-		});
+	get_registerLog: function(callback, t) {
+		this.query(t, "SELECT * FROM `registerLog` ", [], callback);
 	},
-	add_product: function(id, name, price, category, callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, "INSERT INTO `products`"+
-						  "(`id`, `name`, `price`, `category`)"+
-						  "VALUES (?, ?, ?, ?)",
-						  [id, name, price, category], callback);
-		});
-	},
-	commitOrder: function(callback) {
-		var that = this;
-		this.db.transaction(function(t){
-			that.query(t, "UPDATE `sold` SET `committed`=1 WHERE `committed`=0",
-						[], callback);
-		});
-	},
-	get_userLog: function(callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, "SELECT * FROM `userLog` ", [], callback);
-		});
-	},
-	get_registerLog: function(callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, "SELECT * FROM `registerLog` ", [], callback);
-		});
-	},
-	get_sold: function(callback) {
-		var that = this;
-		this.db.transaction(function(t) {
-			that.query(t, "SELECT * FROM `sold` ", [], callback);
-		});
+	get_sold: function(callback, t) {
+		this.query(t, "SELECT * FROM `sold` ", [], callback);
 	}
 }
 

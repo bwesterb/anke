@@ -114,12 +114,12 @@ AnkeDb.prototype = {
 			});
 			query(t, 'DROP TABLE IF EXISTS `categories`', [], cbs[0]);
 			query(t, 'DROP TABLE IF EXISTS `sold`', [], cbs[1]);
-			t.executeSql('DROP TABLE IF EXISTS `products`', [], cbs[2]);
-			t.executeSql('DROP INDEX IF EXISTS sold_committed', 
+			query(t, 'DROP TABLE IF EXISTS `products`', [], cbs[2]);
+			query(t, 'DROP INDEX IF EXISTS sold_committed', 
 							[], cbs[3]);
-			t.executeSql('DROP TABLE IF EXISTS `users`', [], cbs[4]);
-			t.executeSql('DROP TABLE IF EXISTS `userLog`', [], cbs[5]);
-			t.executeSql('DROP TABLE IF EXISTS `registerLog`', [], cbs[6]);
+			query(t, 'DROP TABLE IF EXISTS `users`', [], cbs[4]);
+			query(t, 'DROP TABLE IF EXISTS `userLog`', [], cbs[5]);
+			query(t, 'DROP TABLE IF EXISTS `registerLog`', [], cbs[6]);
 		});
 	},
 	onEmptyDb: function(onEmpty, onNotEmpty) {

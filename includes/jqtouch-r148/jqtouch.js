@@ -1,3 +1,4 @@
+/* vim: set ts=4 sw=4: */
 /*
 
             _/    _/_/    _/_/_/_/_/                              _/
@@ -49,6 +50,7 @@
             extensions=$.jQTouch.prototype.extensions,
             defaultAnimations=['slide','flip','slideup','swap','cube','pop','dissolve','fade','back'],
             animations=[],
+			ft_register=[],
             hairextensions='';
         // Get the party started
         init(options);
@@ -78,7 +80,8 @@
                 submitSelector: '.submit',
                 swapSelector: '.swap',
                 useAnimations: true,
-                useFastTouch: true // Experimental.
+                useFastTouch: true, // Experimental.
+				useFasterTouch: false // Experimental. Changes behaviour
             };
             jQTSettings = $.extend({}, defaults, options);
 
@@ -139,6 +142,28 @@
                 $(touchSelectors.join(', ')).css('-webkit-touch-callout', 'none');
                 $(jQTSettings.backSelector).tap(liveTap);
                 $(jQTSettings.submitSelector).tap(submitParentForm);
+				
+				if(jQTSettings.useFasterTouch) {
+					var tapEvent = (jQTSettings.useFastTouch && $.support.touch) ? 'tap' : 'click';
+					var blitz_tap = function(evt, data) {
+						$this = $(this);
+						if($this.data('ft-tap') != null) {
+							var r = ft_register[$this.data('ft-tap')];
+							return r.callback.call(this, evt, data);
+						}
+						return false;
+					};
+					var blitz_swipe = function(evt, data) {
+						$this = $(this);
+						if($this.data('ft-swipe') != null) {
+							var r = ft_register[$this.data('ft-swipe')];
+							return r.callback.call(this, evt, data);
+						}
+						return false;
+					};
+					$('.ft').live(tapEvent, blitz_tap)
+							.live('swipe', blitz_swipe);
+				}
 
                 $body = $('#jqt');
 
@@ -199,6 +224,12 @@
         }
 
         // PUBLIC FUNCTIONS
+		function ft_update() {
+			for(var i = 0; i < ft_register.length; i++) {
+				var r = ft_register[i];
+				$(r.selector).addClass('ft').data('ft-'+r.type, i);
+			}
+		}
         function goBack(to) {
             // Init the param
             if (hist.length <= 1)
@@ -624,7 +655,15 @@
         }
         $.fn.swipe = function(fn) {
             if ($.isFunction(fn)) {
-                return $(this).live('swipe', fn);
+	        	if(jQTSettings.useFasterTouch) {
+					var id = ft_register.push({
+							type: 'swipe',
+							selector: $(this).selector,
+							callback: fn}) - 1;
+					$(this).addClass('ft').data('ft-swipe', id);
+				} else {
+					return $(this).live('swipe', fn);
+				}
             } else {
                 return $(this).trigger('swipe');
             }
@@ -632,7 +671,15 @@
         $.fn.tap = function(fn) {
             if ($.isFunction(fn)) {
                 var tapEvent = (jQTSettings.useFastTouch && $.support.touch) ? 'tap' : 'click';
-                return $(this).live(tapEvent, fn);
+				if(jQTSettings.useFasterTouch) {
+					var id = ft_register.push({
+							type: 'tap',
+							selector: $(this).selector,
+							callback: fn}) - 1;
+					$(this).addClass('ft').data('ft-tap', id);
+				} else {
+					return $(this).live(tapEvent, fn);
+				}
             } else {
                 return $(this).trigger('tap');
             }
@@ -647,7 +694,8 @@
             goBack: goBack,
             goTo: goTo,
             addAnimation: addAnimation,
-            submitForm: submitForm
+            submitForm: submitForm,
+            ft_update: ft_update
         }
 
         return publicObj;

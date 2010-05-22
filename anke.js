@@ -261,19 +261,21 @@ AnkeUI.prototype = {
 								'on_changeRegister_tap');
 			$('#send').addClass('ourTouch').data('touch',
 								'on_sendTransactions_tap');
-			$('.order li').addClass('ourTouch').data('touch',
+			$('.gotOrder').addClass('ourTouch').data('touch',
 								'on_commitOrder_tap');
 			$('.ourTouch').tap(function(evt, data) {
 				var $t = $(this);
 				var id = parseInt($t.data('id'));
 				if($t.data('touch'))
 					that[$t.data('touch')](that, id, evt, data);
+				return true;
 			});
 			$('.ourTouch').swipe(function(evt, data) {
 				var $t = $(this);
 				var id = parseInt($t.data('id'));
 				if($t.data('swipe'))
 					that[$t.data('swipe')](that, id, evt, data);
+				return true;
 			});
 		})(this);
 		$('.gotOrder').hide();
@@ -343,7 +345,7 @@ AnkeUI.prototype = {
 			$('a', li).attr('href', '#'+id);
 			$('#catList').append(li);
 			var div = $('#catDivTemplate').clone();
-			$('.order li', div).addClass('ourTouch').data('touch',
+			$('.gotOrder').addClass('ourTouch').data('touch',
 								'on_commitOrder_tap');
 			div.attr('id', id);
 			$('#jqt').append(div);
@@ -581,6 +583,7 @@ Anke.prototype = {
 				that.ui.updateUserMenu(that.users);
 				that.ui.updateUser(that.users[that.currentUser]);
 				that.ui.updateRegister(that.inRegister);
+				jQTouch.ft_update();
 			});
 		};
 		this.db.onEmptyDb(function(){
@@ -593,6 +596,6 @@ Anke.prototype = {
 	}
 }
 
-jQTouch = new $.jQTouch({});
+jQTouch = new $.jQTouch({useFasterTouch: true});
 var anke = new Anke;
 $(document).ready(function(){anke.run();});
